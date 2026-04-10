@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// MealItem.tsx
+import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { Meal } from "../types";
 
@@ -6,9 +7,17 @@ interface Props {
   meal: Meal;
   onEdit: (meal: Meal) => void;
   onDelete: (id: string) => void;
+  readOnly?: boolean;
 }
 
-export const MealItem = ({ meal, onEdit, onDelete }: Props) => {
+export const MealItem = ({
+  meal,
+  onEdit,
+  onDelete,
+  readOnly = false,
+}: Props) => {
+  if (!meal.meal_name) return null; // 🔧 fix blank card bug
+
   const handleDelete = () => {
     Alert.alert("Delete Meal", `Delete "${meal.meal_name}"?`, [
       { text: "Cancel", style: "cancel" },
@@ -32,14 +41,16 @@ export const MealItem = ({ meal, onEdit, onDelete }: Props) => {
           })}
         </Text>
       </View>
-      <View style={styles.actions}>
-        <TouchableOpacity style={styles.editBtn} onPress={() => onEdit(meal)}>
-          <Text style={styles.editText}>Edit</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
-          <Text style={styles.deleteText}>Delete</Text>
-        </TouchableOpacity>
-      </View>
+      {!readOnly && (
+        <View style={styles.actions}>
+          <TouchableOpacity style={styles.editBtn} onPress={() => onEdit(meal)}>
+            <Text style={styles.editText}>Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
+            <Text style={styles.deleteText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
