@@ -1,2 +1,0 @@
-# calorai
-# calorai-test

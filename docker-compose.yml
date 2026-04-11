@@ -1,0 +1,69 @@
+# Single command (from repo root): docker compose up --build
+#
+# Next.js: http://localhost:3000
+# Expo / Expo Go: Metro on 8081 — QR and exp:// URL print in the expo service logs.
+#   Run in the foreground (no -d) for the clearest QR: docker compose up expo
+#   Set EXPO_PACKAGER_HOST in .env to your machine's LAN IP so Expo Go on a phone can connect.
+# Bot: Telegram long-polling (TELEGRAM_BOT_TOKEN in .env).
+
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: calorai-bot/Dockerfile
+    working_dir: /app
+    volumes:
+      - ./calorai-bot:/app
+      - bot_node_modules:/app/node_modules
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      NODE_ENV: development
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: calorai-dashboard/Dockerfile
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./calorai-dashboard:/app
+      - dashboard_node_modules:/app/node_modules
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      NODE_ENV: development
+      WATCHPACK_POLLING: "true"
+
+  expo:
+    build:
+      context: .
+      dockerfile: calorai-app/Dockerfile
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    ports:
+      - "8081:8081"
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
+    volumes:
+      - ./calorai-app:/app
+      - expo_node_modules:/app/node_modules
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      NODE_ENV: development
+      TERM: xterm-256color
+      FORCE_COLOR: "1"
+      REACT_NATIVE_PACKAGER_HOSTNAME: ${EXPO_PACKAGER_HOST:-localhost}
+      CHOKIDAR_USEPOLLING: "true"
+
+volumes:
+  bot_node_modules:
+  dashboard_node_modules:
+  expo_node_modules:

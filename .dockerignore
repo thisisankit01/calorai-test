@@ -1,0 +1,14 @@
+.git
+**/.git
+**/node_modules
+**/.next
+**/dist
+**/.expo
+**/.turbo
+**/ios/build
+**/android/build
+**/android/.gradle
+**/*.log
+.env
+.env.*
+!.env.example
