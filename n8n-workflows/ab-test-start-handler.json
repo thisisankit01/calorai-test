@@ -1,0 +1,517 @@
+{
+  "name": "AB Test - Start Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -160,
+        -128
+      ],
+      "id": "50661edf-6d91-4319-a2c6-538a8a0cf986",
+      "name": "Telegram Trigger",
+      "webhookId": "73e9d7ca-c26d-4533-9cac-920ceb35276f",
+      "credentials": {
+        "telegramApi": {
+          "id": "weZ47Yf47wiPZNMP",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://iwexzxsgqhbavmaozmal.supabase.co/rest/v1/user_groups",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "user_id",
+              "value": "=eq.{{$json.message.from.id}}"
+            },
+            {
+              "name": "select",
+              "value": "group_name"
+            },
+            {
+              "name": "limit",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        96,
+        -128
+      ],
+      "id": "eebe1276-a274-4072-8ec0-9b7a9ee5d423",
+      "name": "Check User Group",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "O7m45KkTxmQdL9Na",
+          "name": "Header Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c85008eb-a6b2-4132-9ef3-157a4f7618c9",
+              "leftValue": "={{$json[0].group_name}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        368,
+        -128
+      ],
+      "id": "df55410b-52dc-4e55-b7d8-9393613d6a10",
+      "name": "is new user?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.statsig.com/v1/get_config",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"user\": {\n    \"userID\": \"{{ $('Telegram Trigger').item.json.message.from.id }}\"\n  },\n  \"configName\": \"onboarding_ab_test\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        624,
+        96
+      ],
+      "id": "c5d76eb7-7951-4b90-a07f-def266067a41",
+      "name": "Statsig Assign Group",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "hllsWakpyfQWPfyK",
+          "name": "Header Auth account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const statsigData = $input.first().json;\nconst telegramMsg = $('Telegram Trigger').first().json.message;\n\nreturn [{\n  json: {\n    user_id: String(telegramMsg.from.id),\n    username: telegramMsg.from?.username ?? null,\n    group_name: statsigData.value.group.toLowerCase(),\n    chat_id: String(telegramMsg.chat.id)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        96
+      ],
+      "id": "927474b4-9f3c-419b-acc4-758b8e819d2a",
+      "name": "Prepare User Data"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://iwexzxsgqhbavmaozmal.supabase.co/rest/v1/user_groups",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": []
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3ZXh6eHNncWhiYXZtYW96bWFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTA4MjcsImV4cCI6MjA5MTI4NjgyN30.HvI7pCnBLYHF17FGTMqsPJT6nb55Ii2HXHj9vlD2v-o"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"user_id\": \"{{$('Prepare User Data').first().json.user_id}}\",\n  \"group_name\": \"{{$('Prepare User Data').first().json.group_name}}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1040,
+        96
+      ],
+      "id": "05308901-6665-41e6-91a6-be397054a39e",
+      "name": "Supabase Save User Group",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "O7m45KkTxmQdL9Na",
+          "name": "Header Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const supabaseRow = $input.first().json;\nconst telegramMsg = $('Telegram Trigger').first().json.message;\n\nreturn [{\n  json: {\n    user_id: String(telegramMsg.from.id),\n    username: telegramMsg.from?.username ?? null,\n    group_name: supabaseRow.group_name,\n    chat_id: String(telegramMsg.chat.id)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        944,
+        -224
+      ],
+      "id": "82e6dbd6-476b-4887-9c39-c615b096a928",
+      "name": "Prepare Returning User"
+    },
+    {
+      "parameters": {
+        "chatId": "={{$('Prepare User Data').first().json.chat_id}}",
+        "text": "=Welcome to CalorAI! 👋  I'll help you track your meals and hit your health goals.  Quick setup — just 3 questions!  Step 1 of 3: What's your name?",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1744,
+        -32
+      ],
+      "id": "46bc4bd9-ed90-4287-ace0-37ec17327270",
+      "name": "send onboarding 1/3",
+      "webhookId": "c7b888a5-e4eb-4f25-b8d2-ade1d7db0773",
+      "credentials": {
+        "telegramApi": {
+          "id": "weZ47Yf47wiPZNMP",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{$('Prepare User Data').first().json.chat_id}}",
+        "text": "=Welcome to CalorAI! 🥗  Start tracking your meals today.  Here's what you can do: /log - Log a meal /history - View your meals /delete - Remove a meal",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1744,
+        -224
+      ],
+      "id": "304e8679-13b4-49b7-ace4-abd072afcccb",
+      "name": "send welcome message",
+      "webhookId": "a79faee3-2fd1-46a8-b46b-f687accb3a2e",
+      "credentials": {
+        "telegramApi": {
+          "id": "weZ47Yf47wiPZNMP",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://iwexzxsgqhbavmaozmal.supabase.co/rest/v1/user_state",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"user_id\": \"{{$('Prepare User Data').first().json.user_id}}\",\n  \"current_step\": 1\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1984,
+        -32
+      ],
+      "id": "6a3dfa5e-fdce-41d7-88ac-ada3fa52d71f",
+      "name": "Supabase Set Step 1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "O7m45KkTxmQdL9Na",
+          "name": "Header Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://iwexzxsgqhbavmaozmal.supabase.co/rest/v1/events",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3ZXh6eHNncWhiYXZtYW96bWFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTA4MjcsImV4cCI6MjA5MTI4NjgyN30.HvI7pCnBLYHF17FGTMqsPJT6nb55Ii2HXHj9vlD2v-o"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"user_id\": \"{{$('Prepare User Data').first().json.user_id}}\",\n  \"username\": \"{{$('Prepare User Data').first().json.username}}\",\n  \"group_name\": \"{{$('Prepare User Data').first().json.group_name}}\",\n  \"event_name\": \"group_assigned\",\n  \"metadata\": {}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1248,
+        96
+      ],
+      "id": "13e84790-3399-4037-a600-634369362e8e",
+      "name": "Supabase - Log Assignment Event",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "O7m45KkTxmQdL9Na",
+          "name": "Header Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$('Prepare User Data').first().json.group_name}}",
+                    "rightValue": "control",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "f2d1377f-3193-4ef7-9aae-d5d122508667"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d224f78a-a4ab-4554-be7b-8bfc9b134ea6",
+                    "leftValue": "={{$('Prepare User Data').first().json.group_name}}",
+                    "rightValue": "test",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1536,
+        -128
+      ],
+      "id": "42600dd5-6b48-4ed2-af64-0825267257f4",
+      "name": "Route by Group",
+      "alwaysOutputData": false
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check User Group",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check User Group": {
+      "main": [
+        [
+          {
+            "node": "is new user?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is new user?": {
+      "main": [
+        [
+          {
+            "node": "Prepare Returning User",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Statsig Assign Group",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Statsig Assign Group": {
+      "main": [
+        [
+          {
+            "node": "Prepare User Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare User Data": {
+      "main": [
+        [
+          {
+            "node": "Supabase Save User Group",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Save User Group": {
+      "main": [
+        [
+          {
+            "node": "Supabase - Log Assignment Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Returning User": {
+      "main": [
+        [
+          {
+            "node": "Route by Group",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send onboarding 1/3": {
+      "main": [
+        [
+          {
+            "node": "Supabase Set Step 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase - Log Assignment Event": {
+      "main": [
+        [
+          {
+            "node": "Route by Group",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Group": {
+      "main": [
+        [
+          {
+            "node": "send welcome message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "send onboarding 1/3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ae4261be-0428-4294-a8a5-c061a2ab935f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "46b1d99a6db06bc30d07ce095fa7344f2dabd6fdc77b5fbbb65d4d8c70131ccd"
+  },
+  "id": "jMPvaOeIdSiMdVrr",
+  "tags": []
+}
