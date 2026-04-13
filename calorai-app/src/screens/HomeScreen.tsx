@@ -13,12 +13,10 @@ import { MealItem } from "../components/MealItem";
 import { MealModal } from "../components/MealModal";
 import { Meal } from "../types";
 
-const USER_ID = "8275453639";
-
-export const HomeScreen = () => {
+export const HomeScreen = ({ userId }: { userId: string }) => {
   const insets = useSafeAreaInsets();
   const { meals, isLoading, addMeal, updateMeal, deleteMeal } =
-    useMeals(USER_ID);
+    useMeals(userId);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
 
@@ -38,7 +36,7 @@ export const HomeScreen = () => {
     if (editingMeal) {
       await updateMeal(editingMeal.id, { meal_name, calories });
     } else {
-      await addMeal({ user_id: USER_ID, meal_name, calories });
+      await addMeal({ user_id: userId, meal_name, calories });
     }
   };
 
