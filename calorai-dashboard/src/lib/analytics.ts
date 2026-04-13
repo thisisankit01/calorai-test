@@ -8,22 +8,35 @@ export async function getTotalUsers() {
 }
 
 export async function getMealsLoggedToday() {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const now = new Date()
+  const startOfDay = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    0, 0, 0, 0
+  ).toISOString()
+
   const { count } = await supabase
     .from('meals')
     .select('*', { count: 'exact', head: true })
-    .gte('logged_at', today.toISOString())
+    .gte('logged_at', startOfDay)
   return count || 0
 }
 
 export async function getAvgCaloriesToday() {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const now = new Date()
+  const startOfDay = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    0, 0, 0, 0
+  ).toISOString()
+
   const { data } = await supabase
     .from('meals')
     .select('calories')
-    .gte('logged_at', today.toISOString())
+    .gte('logged_at', startOfDay)
+
   if (!data || data.length === 0) return 0
   const total = data.reduce((sum, m) => sum + (m.calories || 0), 0)
   return Math.round(total / data.length)
@@ -84,9 +97,9 @@ export async function getOnboardingFunnel() {
   }
 
   const started = await getCount('group_assigned')
-  const step1 = await getCount('onboarding_step_1_completed')
-  const step2 = await getCount('onboarding_step_2_completed')
-  const completed = await getCount('onboarding_completed')
+  const step1 = await getCount('onboarding_step_1_complete')   // no 'd'
+  const step2 = await getCount('onboarding_step_2_complete')   // no 'd'
+  const completed = await getCount('onboarding_complete')      // no 'd'
   const base = started || 1
 
   return [

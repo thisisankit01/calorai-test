@@ -40,9 +40,9 @@ export default async function DashboardPage() {
             Analytics
           </span>
         </div>
-        <span className="text-xs font-semibold bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-100">
+        {/* <span className="text-xs font-semibold bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-100">
           Live data
-        </span>
+        </span> */}
       </div>
 
       <div className="p-8 space-y-5">
