@@ -11,8 +11,8 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
       "position": [
-        -160,
-        -128
+        -304,
+        -112
       ],
       "id": "50661edf-6d91-4319-a2c6-538a8a0cf986",
       "name": "Telegram Trigger",
@@ -162,7 +162,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"user_id\": \"{{$('Prepare User Data').first().json.user_id}}\",\n  \"group_name\": \"{{$('Prepare User Data').first().json.group_name}}\"\n}",
+        "jsonBody": "={\n  \"user_id\": \"{{$('Prepare User Data').first().json.user_id}}\",\n  \"telegram_username\": \"{{$('Prepare User Data').first().json.username}}\",\n  \"group_name\": \"{{$('Prepare User Data').first().json.group_name}}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -373,6 +373,40 @@
       "id": "42600dd5-6b48-4ed2-af64-0825267257f4",
       "name": "Route by Group",
       "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1e742990-056b-4cd4-be8a-b1e3d4fce772",
+              "leftValue": "={{ $json.message.text }}",
+              "rightValue": "/start",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -128,
+        -112
+      ],
+      "id": "a1272a78-2f7e-40ca-9a82-983ce429b564",
+      "name": "Is /start Command?"
     }
   ],
   "pinData": {},
@@ -381,7 +415,7 @@
       "main": [
         [
           {
-            "node": "Check User Group",
+            "node": "Is /start Command?",
             "type": "main",
             "index": 0
           }
@@ -500,6 +534,17 @@
           }
         ]
       ]
+    },
+    "Is /start Command?": {
+      "main": [
+        [
+          {
+            "node": "Check User Group",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -507,7 +552,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "ae4261be-0428-4294-a8a5-c061a2ab935f",
+  "versionId": "0dfed9f2-7735-41be-a16c-91be02fb1db5",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "46b1d99a6db06bc30d07ce095fa7344f2dabd6fdc77b5fbbb65d4d8c70131ccd"
