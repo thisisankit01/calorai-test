@@ -31,6 +31,7 @@ export const handleLogInput = async (ctx: Context) => {
   try {
     await mealService.logMeal({
       user_id: userId.toString(),
+      telegram_username: ctx.from!.username || null,
       meal_name,
       calories,
     })

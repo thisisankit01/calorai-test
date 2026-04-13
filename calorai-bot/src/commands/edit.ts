@@ -75,7 +75,7 @@ export const handleEditInput = async (ctx: Context): Promise<boolean> => {
     const mealId = selectedMealId.get(userId)!
 
     try {
-      await mealService.updateMeal(mealId, { meal_name, calories })
+      await mealService.updateMeal(mealId, { meal_name, calories,  telegram_username: ctx.from!.username || null })
       await ctx.reply(
         `Updated successfully!\n\n` +
         `Meal: ${meal_name}\n` +
